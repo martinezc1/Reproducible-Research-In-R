@@ -1,12 +1,11 @@
 project:
   type: book
-
-number-sections: true
+  output-dir: _book
 
 book:
   title: "Reproducible Research Using R"
   author: "Christian Martinez"
-  date: "1/19/2026"
+  date: "2026-02-01" # Or keep your manual date
   chapters:
     - index.qmd
     - 01-Introduction-To-R.qmd
@@ -25,16 +24,19 @@ book:
     - 13-Reproducible-Reporting-R-Markdown.qmd
 
 bibliography: references.bib
+number-sections: true
 
 format:
   html:
-    theme:
-      - cosmo
-      - brand
+    theme: cosmo
     code-copy: true
+    code-summary: "Show the code" # Optional: tucks code away nicely
   epub:
     toc: true
     number-sections: true
 
-editor: visual
+execute:
+  freeze: auto
+  warning: false
 
+editor: visual
