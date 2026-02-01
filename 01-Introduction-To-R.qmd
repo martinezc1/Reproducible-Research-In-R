@@ -1,0 +1,617 @@
+---
+title: "Introduction To R"
+---
+
+Welcome to the programming language R!
+
+::: {.callout-tip}
+## Data is art, and as you will read many times in this book:
+R puts the **r** in Artist.
+:::
+
+If you have never even touched R, great! If you have experience with R, great!
+
+This chapter is meant more for people who have never touched R before. It is not meant to make you an expert level programmer, but more to provide the groundwork for programming in R. Before you can do calculus, you need to be able to do addition, subtraction, multiplication, and division.
+
+**This chapter is exactly that.**
+
+You *do not* need to memorize this chapter; think of it as a reference you will return to throughout the book.
+
+## Learning Objectives {#sec-intro-objectives}
+
+By the end of this chapter, you will be able to:
+
+-   Navigate the RStudio interface and identify the purpose of each pane
+-   Use R as a calculator to perform basic mathematical operations
+-   Build and work with objects, vectors, and different data types
+-   Create and explore simple data frames
+-   Access and modify data frame columns using `$`
+-   Import data from external files such as CSVs and Excel spreadsheets
+-   Install, load, and understand the role of R packages
+-   Use built-in help tools and error messages to troubleshoot basic issues
+
+First, it's important to understand RStudio and its layout.
+
+## RStudio {#sec-rstudio}
+
+Currently we are using RStudio to run R. Here, there are 4 quadrants/panes
+
+-   Source - top left
+    -   This is where 99% of all of your code will be written.
+-   Console - bottom left
+    -   This is where we will see if our code ran or if we have errors. That remaining 1% of code written from before will be done here.
+-   Environment - top right
+    -   This is where you see what is being stored in your environment, such as data, values, and functions.
+-   Files/Plots/Packages/etc - bottom right
+    -   There are many tabs here, which are mostly self-explanatory
+
+::: callout-note
+## Don't panic if your screen looks different!
+
+You can click and drag the panes to rearrange them, but the **names** of the quadrants (Source, Console, Environment, Files) will always be the same.
+:::
+
+Now that we know what we are looking at, let's get into some R code!
+
+It was explained that a vast majority of our code will be written in the source quadrant, specifically, in an **R Script**. Once R Studio has been opened, you can go to file, file new, then click on R Script. A brand new R Script has now been opened for you to begin your coding adventure!
+
+## R as a Calculator {#sec-r-calculator}
+
+One of the most amazing parts of R is that it can do math for you, and replace that scientific calculator you're always carrying around. R's math range is absolutely incredible, but for right now, we will start with the basics.
+
+### Basic Math {#sec-intro-calculator-basic}
+
+Speaking all about basics, let's start off by running some simple math.
+
+```{r}
+#| label: basic-math
+2 + 2
+
+10 / 3
+
+5^2
+
+(3 + 7) * 2
+
+5 * 5 * 5 / 37 + 42
+```
+
+Here, each line of code is an individual math equation. These are simple (2 + 2), that with a little working memory, could be done in your head. R can be elevated to perform more mathematical functions that require a little more elbow grease.
+
+### Built-in mathematical Functions {#sec-intro-calculator-functions}
+
+Building upon `2 + 2`, R has built in functions to help get our math homework done. Right now we will do more basic things such as square roots, but in the forthcoming chapters, we will build to more advanced statistical analyses.
+
+```{r}
+#| label: built-in
+# Built-in functions
+sqrt(25) # square root
+
+log(10) # natural log
+
+log10(1000) # base-10 log
+
+round(3.14159, digits = 3) # round the output to only have 3 digits
+
+round(5*5/37, 4) # rounding the output of an equation
+```
+
+We did a great job of performing a lot of math. As stated before, each line represents a different mathematical equation. While it is a strong start, there will be many times where we want to store our equations or outputs to call later. This is exactly where variables, objects, and vectors come into play.
+
+## Creating Variables and Assigning Objects {#sec-intro-objects}
+
+In the last piece of code, we did a great job of using R as a calculator. While we were able to calculate the square root of 25, what if we need to save it this way we can call it later? What if we don't want to have to continually run the code `sqrt(25)` in order to get the output?
+
+In R, we are able to create variables and assign values to objects. In R, instead of using the = sign, we use `<-` to create objects.
+
+Note: Once each piece of code is run and the objects are created, we should be able to see them in the "Values" part of our environment pane. It will show the name of the value as well as what it is equal to.
+
+::: callout-note
+## Within R, we can always follow this formula:
+
+value name `<-` whatever you want inside the value
+:::
+
+Now, a few tips:
+
+-   R does not like spaces. Try to use underscores or elongated words.
+    -   For example: `first object <- 5` does not work, but `first_object <- 5` does.
+-   R is case sensitive.
+    -   For example: `x` and `X` would not be considered the same.
+-   R overwrites code.
+    -   For example: If I wrote `x <- 5` on one line and then `x <- 6` on the next line, x will be equal to 6 and not 5.
+
+Below is some code to demonstrate.
+
+::: callout-note
+## Color and Numbers:
+
+Notice how all of the numbers change color in your code.
+:::
+
+```{r}
+#| label: object-creation
+# Assigning to objects (variables)
+sqrt(25) # the answer is 5
+
+x <- 5 # Making x equal to 5
+
+# Or, we can save the code we wrote and not the answer
+x <- sqrt(25)
+
+# Updating x
+x <- x + 1 
+x # It is now equal to 6 and not 5
+
+# Objects are case sensitive
+X <- 7
+
+# You can override code and change a variables value
+X <- 5
+
+# Good names: use letters, numbers, underscores; start with a letter
+best_number <- 42
+
+# Inspecting objects
+class(x) # x is numeric, as we already knew!
+```
+
+::: callout-tip
+## Creating vs calling:
+
+Notice that **creating** and **calling** the data are different. I create `x <- 5`, but in order to call it, I just run `x` (after it has been created).
+:::
+
+With an object, there is only one value. One thing equals one thing. To build upon objects, we can move to vectors.
+
+## Vectors {#sec-intro-vectors}
+
+Now that objects have been created, it is time to use those same principles to create **vectors.** Like objects, vectors contain information, just more of it. Before, we had `x <- 5`, however, what if we wanted x to contain every single letter in the alphabet, and not just one thing (`5`)?
+
+This is exactly where vectors come in.
+
+::: callout-note
+## There are two very important things that come into play when creating a vector:
+
+1.  Everything must go inside parenthesis
+2.  Before the parenthesis, you have to call the `c` function. The purpose of this is to literally combine values into a vector.
+
+**You're telling R "Please combine everything in the parenthesis into one vector."**
+:::
+
+For instance, if we wanted to create a vector that has a, b, and c in it, the below code wouldn't work.
+
+```{text}
+wont_work <- a, b, c # no parenthesis
+
+also_wont_work <- (a, b, c) # no c before the parenthesis
+```
+
+Since we have vector examples that *don't* work, let's get into examples that *do* work.
+
+### Numeric Vectors {#sec-intro-vectors-numeric}
+
+Numeric vectors contain only numeric values inside of them.
+
+```{r}
+#| label: numeric-vectors
+# Numeric vector
+number_vector <- c(1, 2, 3, 4, 5) # c stands for combine/concatenate 
+
+number_vector
+
+numeric_vector_2 <- c(6:10) # The colon is like saying "everything from 6 to 10"
+
+numeric_vector_2
+
+# The length command tells you how many values are inside the vector
+length(number_vector) # 5
+
+length(numeric_vector_2) # 5
+
+# It is possible to add numeric vectors as long as they're the same length
+
+number_vector + numeric_vector_2
+
+# Vectorized math
+number_vector * 10
+```
+
+### Character Vectors {#sec-intro-vectors-character}
+
+Just like with numeric data, we can create vectors with characters inside. Unlike with numeric values in R, characters must be in between quotation marks. Notice once quotation marks are used, everything inside (and the quotation marks themselves) change color in your script.
+
+::: callout-warning
+## Quotation Marks
+
+Be careful, as the positioning of quotation marks can severely change your vector (see below).
+:::
+
+```{r}
+#| label: character-vectors
+# Quotation marks around each of the fruits
+fruits <- c("apple", "banana", "cherry")
+
+fruits
+
+# Quotation marks around the entire string
+Fruits <- c("apple, banana, cherry")
+
+Fruits
+```
+
+Take note how in `fruits` each fruit was it's own value, but in `Fruits`, they were together.
+
+### Logical Vectors {#sec-intro-vectors-logical}
+
+::: callout-tip
+## Time for a quick question:
+
+True or False: logical vectors are possible in R?
+:::
+
+*True!*
+
+R is able to handle logistic values (True and False). In R, you can either write it as the full word in all caps or the first letter capitalized:
+
+-   `TRUE` or `FALSE`
+-   `T` or `F`
+
+::: callout-tip
+## See anything in particular regarding your code?
+
+Notice how in your code, logic also changes color, the same color as numeric.
+:::
+
+```{r}
+#| label: logical-vectors
+# Using full word capitalized
+some_truths <- c(TRUE, FALSE, TRUE)
+
+some_truths
+
+class(some_truths)
+
+# Using first letter capitalized
+some_lies <- c(F, F, T)
+
+some_lies
+
+class(some_lies)
+
+# Once you put quotation marks, it makes them a character
+truth_logic <- c("TRUE","FALSE","TRUE")
+
+class(truth_logic) 
+```
+
+Above we used the `class()` command to check to see what type of data we were creating. `some_truth` and `some_lies` were both *logical*, while `truth_logic` was *character*.
+
+::: callout-tip
+## When creating something in R:
+
+It is always *crucial* to check that what you've created matches your desired output.
+:::
+
+### Factors (categorical) {#sec-intro-vectors-factors}
+
+When character values have levels, it becomes categorical data. In R, this is best handled as factors. To turn a character string into factors, utilize the `factor()` command.
+
+::: callout-tip
+## Look at your screen!
+
+Notice how when you type the name of a color in R, the text actually changes to that color. R really does put the **r** in Artist!
+:::
+
+```{r}
+#| label: factors
+# Creating the colors vector as factors
+colors <- factor(c("red", "blue", "red", "green")) # 4 values
+
+colors
+
+class(colors)
+
+levels(colors) # Checking to see how many levels there are (3)
+```
+
+When we called `class()` we saw that `colors` was factor, not character. In order to check to see how many *levels* were inside `colors`, we used the `levels()` command, which indicated that there were three: blue, green, and red.
+
+### Indexing (1-based in R!) {#sec-intro-vectors-indexing}
+
+Vectors, unlike objects, have multiple values inside of them. For instance, when we created the vector fruits, it had three values: apple, banana, cherry. Vectors inherently are **indexed** meaning that there is positioning inside of the vector. For fruits, apple would be 1, banana would be 2, and cherry would be 3. In R, we can utilize this indexing to our advantage and call specific positions from vectors. To do this, we will be using brackets.
+
+```{r}
+#| label: indexing
+# fruits <- c("apple", "banana", "cherry")
+fruits[1] # first element
+
+fruits[2:3] # slice
+```
+
+No matter how many values are in a vector, you can always use `[]` to call specific values.
+
+### Type Coercion {#sec-intro-vectors-coercion}
+
+In the previous sections, we created vectors, but they've all been the same data type. What about if we put some different types of data, for instance, numeric and character, into a vector?
+
+```{r}
+#| label: mixing-vectors
+# Putting two numeric and one character into a vector.
+mix <- c(1, 2, "three")
+
+mix # becomes character
+
+class(mix)
+```
+
+It defaults to character!
+
+::: callout-tip
+## As a rule of thumb:
+
+Quotation marks rule. If a vector has quotation marks, R defaults it to a character string.
+:::
+
+With ample discussion around vectors, it is time to build even more: data frames.
+
+## Data Frames {#sec-intro-dataframes}
+
+Vectors are an essential way to store information, but specifically, **one** type of information. When we tried to mix different types of data in one vector, we saw that R did not like that, and considered everything as part of a character string. So, what if we want to be able to have different types of data all in one place?
+
+This is exactly where data frames come into play. Data frames are the most common way to view data, with maybe the most prominent examples being Microsoft Excel.
+
+### Creating Your Own Data Frame {#sec-intro-dataframes-creating}
+
+Imagine you have three vectors and you want to turn them into a data frame, with each of the three vectors representing a different column in your data frame. In R, once the vectors have been created, you are able to do exactly this using `data.frame()`.
+
+```{r}
+#| label: dataframe
+# Build a tiny class roster data frame
+names_vec <- c("John", "Bob", "Carmen", "Sarah")
+
+ages_vec <- c(20, 22, 21, 23)
+
+major_vec <- c("Psych", "Econ", "Psych", "CS")
+
+roster <- data.frame(
+  name = names_vec,
+  age = ages_vec,
+  major = major_vec,
+  stringsAsFactors = FALSE)
+
+roster
+
+class(roster) # Class is now data.frame
+```
+
+The data frame `roster` was created using three different vectors: `names_vec`, `ages_vec`, and `major_vec`. Now, we have an example of both numeric and character values together.
+
+### Functions to Explore Datasets {#sec-intro-dataframes-exploring}
+
+When exploring datasets, there are some great functions to do this:
+
+-   `head()`: Returns the first part of data.
+-   `tail()`: Returns the last part of data.
+-   `str()`: Displays the structure of the data.
+-   `summary()`: Provides a summary of summary of your data.
+-   `View()`: Opens your dataset as a new window in R.
+-   `colnames()`: Returns the names of all of your columns.
+-   `table()`: Returns a frequency table.
+-   `nrow()`: Returns the total number of rows.
+-   `ncol()`: Returns the total number of columns.
+
+Thankfully, R comes preinstalled with datasets to explore and practice R with. Below we will test these functions out using the dataset *iris.*
+
+```{r}
+#| label: built-in-data
+# iris
+head(iris) # By default returns 6 rows
+
+tail(iris) # By default returns 6 rows
+
+str(iris) # Provides the structure of each column
+
+summary(iris) # Provides statistics for each column
+
+colnames(iris) # Provides the column names of your data
+```
+
+These are by far not the only ones that **can** or **should** be used. Of course, experiment with other commands to see what works best for your style and data.
+
+### Working With Columns Within Data Frames {#sec-intro-dataframes-columns}
+
+When we created the roster data frame, it was three columns: name, age, and major. Let's say we wanted to find the median of age in our roster data frame. How can we find the median of **just** the age column?
+
+In R, to select specific columns in data frames, we can use \$. The formula to follow is:
+
+$$dataset_name\$column_name$$
+
+Below is an example of finding the median of the age column in the roster dataframe.
+
+```{r}
+#| label: calling-columns
+median(roster$age)
+```
+
+Just like in real life, the dollar sign (\$) is very powerful. Now only can we use it to call columns from a dataset, but we can also use it to **make** columns in a dataset that do not exist yet. The formula to follow is:
+
+$$dataset_name\$new_column_name \<- new_data$$
+
+Below are examples of creating a new column in a data frame using the \$.
+
+```{r}
+#| label: new-column
+# Having one value for each row of data
+roster$year <- 2025
+
+# Having a different value for each row of data
+roster$minor <- c("Chemistry", "Biology", "History", "Art")
+
+roster
+```
+
+## Reading & Writing data {#sec-intro-reading-data}
+
+So far, we have created our own data in R or used datasets that are prebuilt in R. Most of the time, you will have data that is not currently in R, but you want/need to bring it into R to do an analysis.
+
+In the case when you have your own data on your computer that you want to bring into R, there are two main ways:
+
+-   `read.csv()`: Imports a CSV file into R.
+-   `read_xlsx()`: Imports an excel file into R (from the package `readxl`, but more about packages later).
+-   `getwd()`: Gets the path of the directory you are working in.
+-   `setwd()`: Sets the path in your directory that you want to work in.
+
+Below is code to assist with uploading data.
+
+```{r}
+#| label: loading-data-practice
+# read.csv example (commented because path varies by machine)
+# my_df <- read.csv("/path/to/your/file.csv")
+
+# Working directory helpers
+# getwd()
+# setwd("/path/where/you/want") # <- avoid hard-coding in projects; we’ll cover R Projects later
+#setwd("~/Documents/Work/Brooklyn College/Fall 2025")
+```
+
+## Packages {#sec-intro-packages}
+
+R is fantastic in many ways. One of, if not the most powerful aspect of R is packages. When you install R and RStudio, there are ample things you can do. But, with packages, there is an **infinite** amount of things you can do.
+
+R is open source, which means that anyone can create their own code, and in turn create their own package. Packages contain functions and datasets that are not preinstalled in R but can significantly elevate the capabilities.
+
+To install a new package in R, you run the command `install.packages()` then inside the parenthesis, in quotation marks, put the name of the package you'd like to install.
+
+Once you install a package, you do not need to reinstall it (unless it needs to be updated, which R will tell you). However, if you want to use it, you need to use the `library()` command. This has to be done **every** time you start a new R session.
+
+```{r}
+#| label: packages-intro
+# install.packages("tidyverse")
+# library(readxl)
+# library(tidyverse)
+```
+
+Packages are going to be an essential part of this course, especially in the next chapter. You can find a list of all the packages [here](https://r-packages.io/packages).
+
+## Getting Comfortable Making Mistakes - Help and Advice {#sec-intro-mistakes}
+
+As previously stated, there are an innumerable amount of things that can be done in R. With so many capabilities, it is impossible to remember everything and get everything right all the time. Sometimes you may get errors when trying to run code. When your code does not work, try looking for:
+
+-   Misspelling of function names
+-   Unclosed brackets, parenthesis, or quotation marks
+-   Spaces in names or columns
+-   Not having the `<-`
+-   Missing a required field from a function
+
+A good portion of the time, R will provide you with an error message which will have the clues to exactly what is the problem. If at any time you need help, you can ask R. The formula to follow is (no parenthesis in this case):
+
+-   ?command_name
+
+Imagine for the life of you you are unable to remember what `str()` does. The below code is an example of how to ask R for help.
+
+```{r}
+#| label: help-intro
+?str
+```
+
+Sometimes, you may encounter an issue that is really just giving you problems. In this case, my best advice is to step away from your computer for 5 minutes and take a deep breath. Just like learning a instrument or learning a new language, things take time.
+
+## Key Takeaways {#sec-intro-takeaways}
+
+This chapter provides the foundational skills needed to begin working with data in R. Here are some key takeaways from the chapter:
+
+-   R is a programming language designed for **working with data**, where results are stored and reused rather than calculated once and discarded.
+-   All work in R is built around **objects**, which allow you to store values, vectors, and datasets for later use.
+-   **Vectors** store multiple values of the same type, while **data frames** combine multiple vectors into a table where rows represent observations and columns represent variables.
+-   R is **case-sensitive** and does not allow spaces in object names, making consistent naming an important habit.
+-   Functions in R follow a consistent structure: a function name followed by inputs inside parentheses.
+-   Data can be created manually, explored using built-in datasets, or imported from external files such as CSVs or Excel spreadsheets.
+-   Packages extend R’s functionality and allow you to perform more advanced analyses beyond base R.
+-   Getting comfortable **reading error messages and using help tools** (`?function_name`) is an essential part of working effectively in R.
+-   This chapter establishes the foundation for all analyses in the book — later chapters build on these ideas using additional tools, workflows, and statistical methods.
+-   Developing consistent workflows and documenting your steps early supports reproducible research, a theme that will be emphasized throughout this book.
+
+## Checklist: Before Moving On {#sec-intro-checklist}
+
+Before continuing to the next chapter, can you confidently say that you have:
+
+-   [ ] Opened RStudio and can identify the **Source**, **Console**, **Environment**, and **Files/Plots** panes?
+-   [ ] Run basic arithmetic directly in R and interpreted the output?
+-   [ ] Created objects using `<-` and reused them later in your code?
+-   [ ] Created **numeric**, **character**, and **logical** vectors using `c()`?
+-   [ ] Indexed values from a vector using brackets `[]`?
+-   [ ] Combined multiple vectors into a **data frame**?
+-   [ ] Accessed and created data frame columns using `$`?
+-   [ ] Used at least one function (e.g., `mean()`, `summary()`, `str()`) and understood its structure?
+-   [ ] Installed and loaded a package using `install.packages()` and `library()`?
+-   [ ] Used `?function_name` to look up help when unsure?
+
+## Key Functions & Commands {#sec-intro-key-functions}
+
+The following functions, operators, and commands are introduced for the first time in this chapter and form the foundation for working in R.
+
+-   `<-` *(base R)*
+    -   Assigns values to objects for later use.
+-   `c()` *(base R)*
+    -   Combines multiple values into a single vector.
+-   `:` *(base R)*
+    -   Creates integer sequences (e.g., `1:10`).
+-   `[]` *(base R)*
+    -   Indexes and subsets elements from vectors or data frames.
+-   `$` *(base R)*
+    -   Accesses or creates columns within a data frame.
+-   `sqrt()` *(base R)*
+    -   Computes square roots.
+-   `log()` / `log10()` *(base R)*
+    -   Computes natural and base-10 logarithms.
+-   `round()` *(base R)*
+    -   Rounds numeric values to a specified number of digits.
+-   `class()` *(base R)*
+    -   Identifies the data type (class) of an object.
+-   `length()` *(base R)*
+    -   Returns the number of elements in a vector.
+-   `factor()` *(base R)*
+    -   Converts character data into categorical (factor) variables.
+-   `levels()` *(base R)*
+    -   Displays the levels associated with a factor.
+-   `data.frame()` *(base R)*
+    -   Combines vectors into a tabular data structure.
+-   `head()` / `tail()` *(base R)*
+    -   Displays the first or last rows of a dataset.
+-   `str()` *(base R)*
+    -   Displays the internal structure and data types of a dataset.
+-   `summary()` *(base R)*
+    -   Produces descriptive summaries of variables in a dataset.
+-   `nrow()` / `ncol()` *(base R)*
+    -   Returns the number of rows or columns in a dataset.
+-   `colnames()` *(base R)*
+    -   Displays or modifies column names of a data frame.
+-   `read.csv()` *(base R)*
+    -   Imports CSV files into R as data frames.
+-   `getwd()` / `setwd()` *(base R)*
+    -   Gets or sets the current working directory.
+-   `install.packages()` *(base R)*
+    -   Installs packages from CRAN.
+-   `library()` *(base R)*
+    -   Loads an installed package into the current R session.
+-   `?function_name` *(base R)*
+    -   Accesses built-in help documentation for a function.
+
+## 💡 *Reproducibility Tip:* {#sec-intro-tip}
+
+Just like how your room can get messy without even trying, so can your work in R. You might start with a single R script, but soon there are multiple scripts, datasets, and figures—maybe one script accidentally saved in your Downloads folder while everything else lives somewhere else. Before you realize it, things feel chaotic.
+
+One of the easiest ways to prevent this is by using **R Projects**.
+
+To create a new R Project, go to **File → New Project**, choose a location on your computer, and give it a meaningful name. From that point on, everything related to that project lives in one place.
+
+The benefits of using an R Project include:
+
+1.  You don’t need to manually set your working directory—it’s handled for you.
+2.  All of your scripts, data, and output files stay together.
+3.  Different projects remain cleanly separated, reducing confusion and mistakes.
+
+In RStudio, you can check whether you’re working inside a project by looking at the top-right corner. If it says *Project (None)*, you’re not in one. If it shows a project name, you are.
+
+Developing the habit of using R Projects early will save you time, reduce errors, and make your work far easier to reproduce—both for yourself and for others.

@@ -1,0 +1,100 @@
+# About {-}
+
+This book was inspired by my students—particularly graduate students at Brooklyn College who wanted to ask meaningful research questions but felt held back by tools that were opaque, brittle, or difficult to reproduce. Over time, it became clear that learning *R* was not just about writing code; it was about learning how to think clearly, document decisions, and produce work that others (and your future self) can understand and reuse.
+
+**Reproducible Research in R** is an open educational resource (OER) designed to help students, researchers, and practitioners build confidence using R as a complete research tool—from data import and visualization to statistical analysis and polished reporting. The goal of this book is not just to teach *what* buttons to press or *which* functions to call, but to teach a **workflow** that is transparent, explainable, and most importantly, reproducible.
+
+This book was created in conjunction with the Open Educational Resources initiative at Brooklyn College and is freely available for learning, teaching, and adaptation.
+
+## What You’ll Learn {#sec-what-learn}
+
+By working through this book, you will learn how to:
+
+-   Use R and RStudio as an integrated research environment\
+-   Import, clean, and explore data using modern R tools\
+-   Visualize data clearly and intentionally\
+-   Conduct common statistical analyses used in applied research\
+-   Interpret results in context—not just report numbers\
+-   Create fully reproducible reports using R Markdown and Bookdown
+
+Throughout the book, reproducibility is treated not as an “extra” or an advanced topic, but as a **default practice**.
+
+## What You Should Know First {#sec-what-to-know}
+
+You do *not* need prior experience with:
+
+-   R
+-   Programming
+-   Command-line tools
+
+Basic familiarity with research methods and statistics is helpful, but the focus of this book is on **implementation and workflow**, not statistical theory.
+
+## What This Book Does Not Cover {#sec-what-it-covers}
+
+This book is not intended to be:
+
+-   A comprehensive statistics theory textbook\
+-   A software engineering or computer science text\
+-   An advanced machine learning or big-data resource
+
+Instead, it focuses on the tools and practices most commonly needed to conduct and present reproducible research in applied settings.
+
+# How to Use This Book {#sec-how-use}
+
+This book is designed to be flexible. You can read it cover-to-cover, jump directly to specific chapters, or use it as a reference alongside your own projects.
+
+## Chapter Anatomy {#sec-chapter-anatomy}
+
+The breakdown of the book is as follows:
+
+-   Part I: Foundations
+    -   Getting Started with R
+    -   Working with Data Using the tidyverse
+    -   Data Visualization with ggplot2
+-   Part II: Making Comparisons
+    -   Comparing Two Groups: Data Wrangling, Visualization, and t-Tests
+    -   Comparing Multiple Means
+    -   Analyzing Categorical Data
+-   Part III: Relationships and Modeling
+    -   Correlation
+    -   Linear Regression
+    -   Logistic Regression
+-   Part IV: Reproducible Communication
+    -   Reproducible Reporting with R Markdown
+
+Most chapters follow a consistent structure:
+
+-   Conceptual explanation of *why* a tool or method is useful\
+-   Step-by-step code examples\
+-   Visualizations and outputs\
+-   Interpretation and best practices\
+-   A checklist to reinforce reproducible habits
+
+This repetition is intentional. Consistency helps build intuition.
+
+## Code, Data, and Reproducibility {#sec-code-etc}
+
+All code in this book is meant to be **run**, **modified**, and occasionally **broken**. Learning happens when you experiment.
+
+::: {.callout-tip}
+## As my father always says:
+That's why they put erasers on pencils
+:::
+
+### The reproresearchR Package
+
+The datasets used throughout this book are provided in the companion R package `reproresearchR`, allowing readers to load data directly into R without manually downloading files. This ensures that all examples run the same way for everyone.
+All figures, tables, and analyses in this book are generated directly from code—never copied and pasted from external software—so that every result is fully reproducible.
+
+The `reproresearchR` package also includes two versions of each chapter’s R script:
+
+- Full Script: the complete code used to generate all analyses and figures in the chapter.
+- Helper Script: a partially completed script with key sections removed, allowing you to work along with the textbook by filling in the missing code.
+
+Once R and the `reproresearchR` package are installed (with RStudio recommended), readers have everything they need to follow along and successfully complete the analyses in this textbook.
+
+## Acknowledgments {#sec-acknowledgments}
+
+This book would not exist without the curiosity, questions, and persistence of students at Brooklyn College. Their willingness to wrestle with messy data and imperfect code shaped both the content and the tone of this text.
+
+Additional thanks go to the Open Educational Resources team at Brooklyn College and to the broader R community, whose commitment to open tools and shared knowledge makes projects like this possible.

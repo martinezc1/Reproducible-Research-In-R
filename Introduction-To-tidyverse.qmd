@@ -1,0 +1,574 @@
+---
+title: "Introduction-To-tidyverse"
+---
+
+Just like Spider-Man, we are going to enter a new universe in R: the `tidyverse`!
+
+This chapter introduces the `tidyverse`, a collection of R packages designed to make data analysis more readable, consistent, and reproducible. The tools introduced here will be used repeatedly throughout the remainder of this textbook, forming the backbone of nearly every analysis we perform.
+
+As discussed in the last chapter, R comes with prebuilt functions, but what makes R so dynamic and powerful is the ability to install and use different libraries. Few have been as impactful or as widely used as the `tidyverse` package. Now, of course, you can use R however you would like, as your programming style is totally up to you. The `tidyverse`, however, has been unofficially accepted as the major dialect of R.
+
+## Learning Objectives {#tidyverse-objectives}
+
+By the end of this chapter, you will be able to:
+
+-   Install and load R packages from CRAN
+-   Explain what the tidyverse is and why it is commonly used
+-   Use the pipe operator (`%>%`) to build readable data workflows
+-   Select, filter, arrange, and rename variables in a data frame
+-   Create new variables using `mutate()`
+-   Apply conditional logic with `if_else()` and `case_when()`
+-   Summarize grouped data using `group_by()` and `summarize()`
+-   Combine multiple tidyverse verbs into a single reproducible pipeline
+
+Before we get started, we have to first install `tidyverse`.
+
+## Using Packages {#using-packages}
+
+**The Comprehensive R Archive Network** (CRAN) is where all of the packages are hosted in R, and when installing packages, this is where they will be installed from.
+
+We briefly spoke about packages in Section \@ref(intro-packages), but now let's take a deeper dive.
+
+### Installing Packages {#installing-packages}
+
+In order to install packages, we can utilize the `install.packages()` command. Let's install our first official package, the `tidyverse` package.
+
+```{text install-tidyverse}
+install.packages("tidyverse")
+```
+
+Awesome! It may take a second or two for the code to run, but tidyverse has now been installed in R. Importantly, once a package is installed on your local computer, you *don't* need to install it again. To get a little more practice, let's install some more packages that we will be using.
+
+```{text install-packages}
+install.packages("palmerpenguins")
+install.packages("fortunes")
+install.packages("cowsay")
+```
+
+### Loading Packages {#loading-packages}
+
+As stated before, once a package has been installed, it does not need to be reinstalled every time you utilize R. **However**, each time you want to use a package in an R session, **you do** need to load it. This can be done using the command `library()`.
+
+```{r loading-packages}
+library(tidyverse)
+library(palmerpenguins)
+library(fortunes)
+library(cowsay)
+
+# Quick sanity check that packages are loaded
+sessionInfo()$otherPkgs %>% names()
+```
+
+We have successfully loaded all of the packages (and in turn all of their contents). That means that as long as we do not close this R session, we can utilize the packages.
+
+The `palmerpenguins` package we will be using in this chapter. Before then, I want to show you that R is fun and diverse. The package `fortunes` provides you a random R quote with the function `fortune()` and the `say()` command from the `cowsay` package provides a beautiful animal saying whatever you want it to say. Below the animal is "cow" but try some other ones (I suggest "dragon").
+
+```{r fun-packages}
+# Fun packages
+fortunes::fortune()   # random quote about R
+
+cowsay::say("Welcome to tidyverse!", by = "cow")
+```
+
+It isn't always necessary, nor will it be done a lot in this book, but you can use the `::` before the command to specifically mention what package the command is coming from. Most of the time this isn't necessary, but there are times when you will have packages loaded that have overlapping function names. This is when `::` should be called.
+
+To further illustrate the diversity of R packages, let’s introduce an example of working with live, real-world data using the `nycOpenData` package. This package connects directly to the NYC Open Data Portal and displays the most recent data happening in the city. By using the `nyc_311()` function, we can gather the five most recent 311 calls in New York City. The fun thing is that every time you open this chapter, this data will be different! This is an important aspect of working with live data and needs to be considered when creating reproducible research.
+
+First we install the package.
+
+```{text install-nycOpenData}
+install.packages("nycOpenData")
+```
+
+Now we load it and call the function.
+
+```{r nycOpenData}
+library(nycOpenData)
+head(nyc_311())
+```
+
+With some examples under our belt, let's move to the tidyverse!
+
+## Meet the tidyverse {#tidyverse-welcome}
+
+Last chapter, R was introduced. In this chapter, we will be building on the basic language and syntax we learned and build upon it with `tidyverse`.
+
+### The Pipe {#tidyverse-pipe}
+
+One of the best things that the `tidyverse` has to offer is called *piping*. It technically comes from the `magrittr` package. What makes the `tidyverse` package so ubiquitous with R is that `tidyverse` is actually a **collection** of R packages in one package. By installing and loading the tidyverse package, you are actually installing and loading a bevy of packages and significantly powering up your R session. Here are the packages included in `tidyverse`:
+
+-   `dplyr`
+    -   Tools for data manipulation, including `select()`, `filter()`, `mutate()`, `arrange()`, and `summarize()`.
+-   `ggplot2`
+    -   A powerful system for creating data visualizations using the grammar of graphics.
+-   `tidyr`
+    -   Tools for reshaping and cleaning data, such as `pivot_longer()` and `pivot_wider()`.
+-   `readr`
+    -   Functions for reading data into R (e.g., CSV files) quickly and consistently.
+-   `tibble`
+    -   A modern reimagining of data frames with improved printing and behavior.
+-   `stringr`
+    -   Tools for working with text data, such as `str_trim()` and `str_to_upper()`.
+-   `forcats`
+    -   Tools for working with categorical (factor) variables.
+
+Piping is telling R the sequence you want things to be done in code, and uses `%>%`. Below is an example of how you would write something.
+
+```{r pipe-intro}
+# In base R, to find the square root of a number, we would use this:
+sqrt(42)
+
+# With piping, we could rewrite it like this:
+42 %>% sqrt()
+```
+
+In base R, code is written inside out. What I mean by that is that base R code is often evaluated from the inside out. You take the 42 (inside the square root) and then square root it. With piping, it is read left to right. First this, then this, etc.
+
+Let's use a more potent example. You're starting this book and have been thinking, " i love r! ". It is all lowercase and has whitespace before and after the words. However, you love R so much you want it to be in all caps, and you don't want whitespace ruining your exclamation. Below is the way to do this in base R and then using piping.
+
+For reference, the `str_to_upper()` command capitalizes everything in a string, and the `str_trim()` removes leading and trailing whitespace in a string. Both are a part of the `stringr` package in the `tidyverse`.
+
+```{r pipe-cleaning}
+str_to_upper(str_trim(" i love r! "))
+
+" i love r! " %>% str_trim() %>% str_to_upper()
+
+# You can also move down instead if you like
+# " Adelie " %>%
+#   str_trim() %>%
+#  str_to_upper()
+```
+
+Those two pieces of code do the same thing, but they look **very** different:
+
+1.  The first reads right to left, or middle to outer. It starts with the string inside the `str_trim()`, then you have to move outward to the `str_to_upper()`, moving right to left moving from parenthesis to parenthesis.
+2.  The second reads left to right. It goes string %\>% function %\>% function. It takes the string, trims the whitespace, then turns it to uppercase.
+
+**The first starts with a function, the second starts with what we want the function(s) to be applied to.**
+
+When piping:
+
+> Rule of thumb: Each line in a pipeline should perform one clear transformation.
+
+## Manipulating Data in tidyverse {#tidyverse-manipulation}
+
+We will now be utilizing another one of our packages that we installed and loaded, the `palmerpenguins` package. It has the dataset `penguins` that we are going to use. If you use the helper function and write `?palmerpenguins` or `?penguins` you will find a description of the data (hint: it's data related to penguins).
+
+Each of the subsections touches on a different aspect. Let's start by finding out more about our data.
+
+### Distinct {#tidyverse-distinct}
+
+We have a dataset that we don't quite know too much about. Let’s first find out some information about it using what we learned from base R in the last chapter.
+
+```{r penguins}
+ncol(penguins)      # Finding out the number of columns
+
+nrow(penguins)      # Finding out the number of rows
+
+colnames(penguins)  # Finding out the names of the columns
+```
+
+Great, we now know that there are 344 rows of data, 8 columns, and all the column names. We know that there are different types of penguins, and that the species is a column in this dataset. We could scroll through every single row and try to eyeball the distinct types of penguin species in this dataset. **Or** we could use the `distinct()` function to get this information.
+
+> `distinct()`: Keep only distinct rows from a data frame
+
+```{r distinct-one}
+penguins %>% distinct(species)
+```
+
+That one line of code filtered through all 344 rows and figured out that there are only three different species of penguins in the `penguins` dataset. But it doesn't stop there - you can also use the `distinct()` command to see distinct combinations of data too. For example:
+
+```{r distinct-two}
+penguins %>% distinct(species, island)
+```
+
+Very interesting! We can see that the "Adelie" species is found on three different islands, whereas the other two species are only found on one island each (and different islands). With just a comma, you can find the distinct combinations between data in any of your columns.
+
+Now, what if we don't need all of our columns?
+
+### Select {#tidyverse-select}
+
+For now, let's pretend like we only want to work with the columns species, island, bill_length_mm, and body_mass_g. How do we select for only those? We can use the `select()` command!
+
+> `select()`: Changes which columns exist
+
+```{r select-names}
+penguins %>% select(species, island, bill_length_mm, body_mass_g)
+```
+
+Instead of using the actual column names, we can use the column indices - which number (in order). Below is an example using the column indexes (hint: it uses a comma and a colon.)
+
+```{r select-index}
+# This is saying let's take the first column, and then every column from 3 to 5
+penguins %>% select(1,3:5) 
+```
+
+Note that no matter if we specifically named the columns or used their index numbers, we get the same result. **However** using column numbers works, but can break if the dataset changes.
+
+Now that we can select what columns we want to see, it is time to filter what rows we want. Below are some of the operators we are going to use to filter our data.
+
+-   `==`: Equal to
+-   `!=`: Not equal to
+-   `>=`: Greater than or equal to
+-   `<=`: Less than or equal to
+-   `>`: Greater than
+-   `<`: Less than
+-   `&`: And
+-   `|`: Or
+-   `%in%`: Within
+
+### Filter {#tidyverse-filter}
+
+When we want to select for specific columns in a dataset, we use the `select()` command. But, when we want to filter the data inside a dataset, we utilize the `filter()` command.
+
+> `filter()`: Changes which rows exist
+
+Let's say that we want to filter for only the penguin species Adelie. If you do not know what they look like, here is a picture:
+
+![A picture of a Adelie penguin.](Adelie-Screenshot.png)
+
+We will filter for only rows that have the word Adelie inside the species column.
+
+```{r filter}
+penguins %>%
+  filter(species == "Adelie")
+```
+
+With that piece of code, the output only returned rows where Adelie is the species.
+
+Thankfully, we do not have to keep to only one filter condition at a time.
+
+#### Filtering with AND/OR {#tidyverse-filter-and-or}
+
+Inside the same `filter()` command, we can have as many conditions as possible. One incredibly important decision is whether to use and/or.
+
+In the case we only want to return rows where species is "Adelie" **and** the island is "Torgersen", we will use the `&` symbol.
+
+Important: rows that return have to meet **both** criteria. If in that row either none, or even one, of the criteria are met, then that row will not return.
+
+```{r filter-and}
+penguins %>%
+  filter(species == "Adelie" & island == "Torgersen")
+```
+
+That returned exactly what we wanted. But, what if we changed our mind. We want to return rows that **either** have "Adelie" as their species **or** the island is "Torgersen". Instead of using the `&` symbol, we need to use the `|` symbol.
+
+```{r filter-or}
+penguins %>%
+  filter(species == "Adelie" | island == "Torgersen")
+```
+
+Now, instead of returning rows that have both "Adelie" and "Torgersen", the code returns rows where either species is equal to "Adelie" or island is equal to "Torgersen."
+
+#### Logical Filters {#tidyverse-filter-logical}
+
+We do not have to just use `==`, as we have other options. Below are two options: the first filters for any body mass over 4,000 grams, and the second filters for species that are either `Adelie` or `Gentoo`.
+
+```{r filter-logical}
+penguins %>% filter(body_mass_g >= 4000)
+
+penguins %>% filter(species %in% c("Adelie", "Gentoo"))
+```
+
+#### Filtering NA values {#tidyverse-filter-na}
+
+In any dataset, NA values can be a pain. Depending what to do with them is always situational, but it is important to learn **how** to work with them. We can utilize `is.na()` to filter for which are NA and the `drop_na()` to remove all rows that have **at least** one NA value.
+
+```{r filter-na}
+penguins %>% filter(is.na(body_mass_g))    # Filter for rows that have missing data
+
+penguins %>% drop_na(body_mass_g)          # Filters for rows that don't have missing data
+```
+
+As a cautionary tale, always be careful with how you handle NA values, as different situations really do require different handling of NA values.
+
+Now, we will move on to how we want our data to be organized.
+
+### Arrange {#tidyverse-arrange}
+
+Organization of data is just as important as anything else. Most likely, data is not prearranged in any particular order. Luckily, the `arrange()` command allows us to organize our data very nicely. There are only two options: ascending or descending order. By default, `arrange()` orders the data in ascending order.
+
+> `arrange()`: orders the rows of a data frame
+
+```{r arrange}
+penguins %>% arrange(body_mass_g)          # ascending order
+
+penguins %>% arrange(desc(body_mass_g))    # descending order
+```
+
+### Mutate {#tidyverse-mutate}
+
+Last chapter, we learned that in order to create a new column, we could do so using the `$` symbol. In `tidyverse`, we can also create new columns, but instead of using the `$`, we can use the `mutate()` command.
+
+> `mutate()`: Changes or creates columns
+
+```{r mutate}
+# Base R
+penguins$bill_ratio <- penguins$bill_length_mm / penguins$bill_depth_mm
+
+penguins<- penguins %>%
+  mutate(bill_ratio = bill_length_mm / bill_depth_mm)
+```
+
+Both of these examples are the same in the sense that a new column, bill_ratio, is created.
+
+If we want to get a little more complicated and add some criteria, we can use either the `if_else()` or `case_when()` command.
+
+### If Else {#tidyverse-if-else}
+
+In the scenario where we wanted to create a new column called size_category. If the body mass of the penguin is greater than 3,500 grams, then we want it to be considered ‘Big’; otherwise, it should be considered ‘Small’. To do this, we can use the `if_else()` where we first add the criteria we want to build a column using, the value if it fits the criteria, and the value if it does not fit the criteria.
+
+```{r if-else}
+penguins %>%
+  mutate(size_category = if_else(body_mass_g >= 3500, "Big","Small"))
+```
+
+That code creates the size_category, with the code saying:
+
+-   if body_mass_g \>= 3500 then make the value in size_category "Big"
+-   if body_mass_g **is not** \>= 3500 then make the value in size_category "Small"
+
+But what if there are multiple criteria we want and not binary like big and small?
+
+#### Case When {#tidyverse-case-when}
+
+When there are only two different criteria, then we can use `if_else()`. But, when there are three or more criteria, we can use the `case_when()` command. Instead of having just "Big" and "Small", let's add the category "Gigantic".
+
+```{r case-when}
+penguins %>%
+  mutate(size_category = case_when(
+    body_mass_g <= 3500 ~ "Small",
+    body_mass_g > 3500 & body_mass_g <= 4000 ~ "Big",
+    body_mass_g > 4000 ~ "Gigantic",
+    TRUE ~ "Unknown"   # catch-all for NAs or anything else
+  ))
+```
+
+Now, still using the body_mass_g column, we still create the size_category column, just with three different values inside instead of two.
+
+### Renaming Columns {#tidyverse-rename}
+
+Sometimes, for whatever reason, the column names that are originally in your data are not the ones that you want. That could be for aesthetic purposes or more practical reasons. Either way, to change the name of a column, you can use the `rename()` command. The formula to use with this is:
+
+> new_name = old_name
+
+As an example, let's change the name of the species column to penguin_types.
+
+```{r rename}
+penguins %>% rename(penguin_types = species) 
+```
+
+With all we can do, it is time to put `tidyverse` to the test and perform our functions together!
+
+### Putting them all together {#tidyverse-together}
+
+What is fantastic about R is that we can put all these different functions together. We don't **just** have to filter, or **just** have to select. As long as it makes sense, we can do as many functions together as we would like.
+
+Let's do exactly that and create a new data frame that selects, filters, mutates, and arranges data.
+
+```{r all-together}
+penguins_new <- penguins %>% 
+  select(species, island, bill_length_mm, body_mass_g) %>%
+  filter(species == "Adelie") %>%
+  mutate(size_category = if_else(body_mass_g >= 3500, "Big","Small")) %>%
+  arrange(desc(body_mass_g)) %>% 
+  rename(penguin_types = species) 
+```
+
+Here is the step by step breakdown of what exactly the code above does:
+
+1.  `penguins_new` is the name of the new dataset.
+2.  It is created using the `<-` command
+3.  We are telling R that the source of our data is `penguins`
+4.  We are selecting for only the species, island, bill_length_mm, and body_mass_g columns
+5.  We are then filtering for only species that are "Adelie"
+6.  We are then creating a new column called size_category using the body_mass_g column.
+7.  We are then arranging the data in descending order of body_mass_g.
+
+All of this code looks familiar, as it is all taken from previous example! Mind you, we could have taken any of the code from above and mixed and matched. In R, you are able to build whatever you can imagine.
+
+Note: Order is incredibly important here. Imagine a case where you did not select for species and then went to rename the column to penguin_types. That code above would not work because in that code, species wouldn't have been selected for.
+
+> Important: In tidyverse pipelines, the order of functions matters. Each step depends on the output of the previous step.
+
+Now that we've put it all together, let's check out some more things we can do in `tidyverse`.
+
+## Insights Into Our Data {#tidyverse-insights}
+
+We have done a fantastic job of manipulating our data. But, what if we want a different set of insights? What if, for example, we want to uncover summarized data relating to the three different species in our `penguins` dataset?
+
+### Count {#tidyverse-insights-count}
+
+Before, we utilized the `nrow()` function to find out how many rows there are overall in the `penguins` dataset. We also utilized the `distinct()` command to find out how many different species there are in the `penguins` dataset. But, as of right now, we currently do not know **how** many rows **each** species has. Using base R, we can use the `table()` command, and in the `tidyverse`, we can use the `count()` command.
+
+```{r tables}
+table(penguins$species)
+
+penguins %>% count(species, sort = TRUE)
+```
+
+We now have exactly what we wanted - the number of rows in the dataset for each species. This is great for finding counts, but there may be cases where we need more summarized data than just counts.
+
+### Summarizing and Grouping {#tidyverse-insights-summarize-grouping}
+
+In cases like this (similar to a pivot table in Excel), we can utilize both the `group_by()` and the `summarize()` commands in R. The first tells R which column you want to group by, and the second tells it what data you want summarized.
+
+Below, we will be finding out the total number of rows in the dataset per species and the mean body mass of each species.
+
+```{r summarize}
+penguins %>%
+  group_by(species) %>%
+  summarize(
+    n         = n(),
+    mean_mass = mean(body_mass_g, na.rm = TRUE))
+```
+
+Voilà! This table has summarized data per each of the three species of penguins. Notice that here we used the `n()` command instead of `count()` as it works better with `summarize()`, but gets the same results.
+
+In later chapters, these same `tidyverse` tools will be used to prepare data for visualization, statistical modeling, and interpretation.
+
+## Common Gotchas & Quick Fixes {#tidyverse-fixes}
+
+Below are some common mistakes made in the `tidyverse` and ways to fix them. As always in R (and probably in life) if some code ever gets too frustrating, step away from your computer for a few minutes.
+
+### = vs == {#tidyverse-fixes-equals}
+
+In math, we use one equal sign. In `tidyverse`, we use two equal signs.
+
+```{text wrong-equals}
+filter(species = "Adelie")  # WRONG
+
+filter(species == "Adelie") # RIGHT
+```
+
+### NA-aware math {#tidyverse-fixes-na}
+
+When doing math (inside or outside of `tidyverse`) NA values can mess up everything. Below is an example of this. We can utilize `na.rm =` command, which by default is set to "FALSE".
+
+```{r na-math}
+mean(penguins$body_mass_g)                 # Returns NA if any missing
+
+mean(penguins$body_mass_g, na.rm = TRUE)   # CORRECT
+```
+
+As you can see, the addition of `na.rm = "TRUE"` removes the NA value and calculates the average.
+
+### Pipe position {#tidyverse-fixes-pipe}
+
+Piping is something that most R programmers use in some way or another. If you decide to use it, it is imperative that the pipe is placed on the line that you're going to connect. Below is an example of a good and a bad (won't work) piping.
+
+```{text pipe-position}
+penguins %>%
+  select(species)     # Good
+
+penguins
+%>% select(species)   # Bad
+```
+
+### Conflicting function names {#tidyverse-fixes-function-names}
+
+As mentioned before, there may be times where there are packages being loaded that have conflicting function names. For instance `dplyr::filter` vs `stats::filter`. In this case, make sure to use the formula:
+
+> package::function() to be explicit if needed.
+
+## Key Takeaways {#tidyverse-takeaways}
+
+The tidyverse is a collection of R packages designed to make data analysis more readable, consistent, and reproducible.
+
+-   Loading the tidyverse with library(tidyverse) attaches multiple core packages (such as `dplyr`, `ggplot2`, and `tidyr`) that share a common design philosophy.
+-   The pipe operator (`%>%`) allows code to be read from left to right, with each step building on the result of the previous step.
+-   Each `tidyverse` verb typically performs one clear transformation, making pipelines easier to understand and debug.
+-   `select()` changes which columns exist in a dataset, while filter() changes which rows are kept.
+-   `arrange()` reorders rows based on variable values but does not modify the data itself.
+-   `mutate()` creates new variables or modifies existing ones, enabling feature engineering and transformation.
+-   Logical operators (such as `==`, `!=`, `>`, `<`,`&`, and `|`) allow precise control when filtering data.
+-   The order of functions in a pipeline matters, as each step depends on the output of the previous one.
+-   Understanding `tidyverse` workflows early is essential, as these tools will be used throughout later chapters for visualization, modeling, and statistical analysis.
+
+## Checklist {#tidyverse-checklist}
+
+**When working with tidyverse, have you:**
+
+-   [ ] Installed the package using `install.packages()` *(only needed once)*?
+-   [ ] Loaded the package for the current R session using `library()`?
+-   [ ] Started your pipeline with the correct data source?
+-   [ ] Used the pipe operator (`%>%`) to make your code readable from **left to right**?
+-   [ ] Ensured each step in your pipeline performs **one clear transformation**?
+-   [ ] Used `select()` to control **which columns** are included?
+-   [ ] Used `filter()` with proper logical operators (`==`, `&`, `|`, `%in%`) to control **which rows** are kept?
+-   [ ] Verified that `==` (comparison) is used instead of `=` (assignment) inside `filter()`?
+-   [ ] Considered how missing values (`NA`) affect filtering and calculations?
+-   [ ] Used `mutate()` to create or modify variables without unintentionally overwriting existing data?
+-   [ ] Checked that the **order of functions** in your pipeline makes sense?
+-   [ ] Inspected your data after major transformations (e.g., filtering, mutating, grouping)?
+-   [ ] Applied `group_by()` *before* `summarize()` when computing grouped summaries?
+-   [ ] Re-run your entire pipeline from top to bottom to ensure it is fully reproducible?
+
+## Key Functions & Commands {#tidyverse-keyfunctions}
+
+The following functions and commands are introduced or reinforced in this chapter.
+
+-   `install.packages()` *(base R)*
+    -   Installs packages from CRAN onto your local machine. This only needs to be done once per package.
+-   `library()` *(base R)*
+    -   Loads an installed package into the current R session so its functions can be used.
+-   `%>%` *(magrittr / tidyverse)*
+    -   Passes the result of one operation directly into the next, allowing code to be read from left to right.
+-   `select()` *(dplyr)*
+    -   Chooses specific columns from a dataset.
+-   `filter()` *(dplyr)*
+    -   Keeps rows that meet logical conditions.
+-   `arrange()` *(dplyr)*
+    -   Orders rows based on the values of one or more columns.
+-   `mutate()` *(dplyr)*
+    -   Creates new columns or modifies existing ones.
+-   `rename()` *(dplyr)*
+    -   Changes column names using the format `new_name = old_name`.
+-   `distinct()` *(dplyr)*
+    -   Returns unique values or unique combinations of values from one or more columns.
+-   `if_else()` *(dplyr)*
+    -   Creates values based on a binary condition, ensuring consistent data types.
+-   `case_when()` *(dplyr)*
+    -   Handles multiple conditional rules when creating or transforming variables.
+-   `is.na()` *(base R)*
+    -   Identifies missing (`NA`) values.
+-   `drop_na()` *(tidyr)*
+    -   Removes rows containing missing values in specified columns.
+-   `count()` *(dplyr)*
+    -   Counts the number of observations for each group in a dataset.
+-   `group_by()` *(dplyr)*
+    -   Groups data so that summary statistics can be calculated separately for each group.
+-   `summarise()` *(dplyr)*
+    -   Computes summary statistics (e.g., means, counts) for grouped data.
+-   `n()` *(dplyr)*
+    -   Returns the number of observations within each group when used inside `summarise()`.
+-   `sessionInfo()` *(base R)*
+    -   Displays information about the current R session, including loaded packages.
+-   `table()` *(base R)*
+    -   Creates frequency tables for categorical data.
+
+## 💡 *Reproducibility Tip:* {#tidyverse-tip}
+
+The `tidyverse` provides many ways to work with data, which is both powerful and flexible. To support reproducibility, aim to write code that clearly shows the sequence of transformations applied to your data.
+
+Whenever possible, keep related data-cleaning steps together in a single pipeline rather than creating multiple intermediate objects that are used only once.
+
+For example, consider the following code, which selects variables and filters rows using two separate commands:
+
+```{text tip-help}
+penguins_select <- penguins %>% 
+  select(species, island, bill_length_mm, body_mass_g)
+
+penguins_new <- penguins_select %>%
+  filter(species == "Adelie")
+```
+
+This creates the intermediate `penguins_select`, which is used to create `penguins_new`. In this case, the same transformation can be expressed more clearly by chaining the steps together:
+
+```{text tip-final}
+penguins_new <- penguins %>%
+  select(species, island, bill_length_mm, body_mass_g) %>%
+  filter(species == "Adelie")
+```
+
+Both approaches produce the same result. Keeping related steps together makes it easier to understand how the data were transformed and reduces the number of objects to track—an important habit for writing clear, reproducible analyses.

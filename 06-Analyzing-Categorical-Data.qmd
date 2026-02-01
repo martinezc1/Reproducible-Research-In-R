@@ -1,0 +1,495 @@
+---
+title: "Analyzing Categorical Data"
+---
+
+## Introduction {#sec-intro-cat-analysis}
+
+In some situations, we do not have numerical data, and only categorical data. What do we do then? There are no meaningful measures of central tendency like the mean, median, or mode. We can't make a scatterplot, or run a correlation matrix, or other techniques we have covered in this textbook so far.
+
+In situations like these, when we **only** have categorical values, we undergo a *Categorical Analysis.* Today, we will be looking at three different treatment options aimed at inhibiting infections.
+
+::: {.callout-note}
+## In this lesson, the question we are trying to answer is:
+*Does the type of treatment people get affect whether they get an infection?*
+:::
+
+We'll use a dataset called `Infection_Treatments.xlsx`. Each row is a unique participant, indicating what treatment method they utilized, and if they became infected or not.
+
+## Learning Objectives {#sec-cat-objectives}
+
+By the end of this chapter, you will be able to:
+
+-   Identify situations in which categorical analysis is appropriate and numerical methods are not
+-   Load and inspect categorical data to confirm variable types and structure
+-   Create and interpret contingency tables using base R and tidyverse tools
+-   Calculate and interpret row- and column-based percentages for categorical data
+-   Visualize relationships between categorical variables using stacked and grouped bar charts
+-   Conduct and interpret a chi-square test of independence using `chisq.test()`
+-   Explain the role of expected counts, degrees of freedom, and p-values in chi-square testing
+-   Use residuals and standardized residuals to identify cells that contribute most to a chi-square result
+-   Quantify the strength of association between categorical variables using Cramer’s V
+
+## Loading Our Data {#sec-cat-analysis-data}
+
+Similarly to how we loaded data in @sec-loading-data, we are going to load the `Infection Treatments.xlsx` dataset into R using the `readxl` package and the `read_xlsx()` function inside of it.
+
+Instead of using the `summary()` or `str()` functions, we are going to experiment with the `skim()` function from the `skimr` package to investigate our data.
+
+```{r}
+#| label: tbl-loading-data
+#| tbl-cap: The skim function from the skimr package provides with important information regarding our data.
+#| message: false
+#| warning: false
+library(readxl)
+library(tidyverse)
+
+infection <- read_xlsx("Infection_Treatments.xlsx")
+
+library(skimr)
+
+skim(infection)
+```
+
+We can see our data nice and loaded. There are two columns, Infection and Treatment which are both categorical, and there are 150 rows. Thankfully, we do not have any missing data. Let's dig a little deeper into our data.
+
+## Contingency Tables {#sec-contingency-tables}
+
+When there are only categorical variables, we need to create what are called contingency table (otherwise known as frequency tables). We first touched upon contingency tables in @sec-tidyverse-insights-count, where we used the `table()` command from base r and the `count()` function from `dplyr/tidyverse`. In addition, the the `xtabs` command from the `stats` package can also be used. It is personal preference on which you decide to personally use.
+
+First, we check the balance of our groups to ensure the randomization worked and to see the overall infection rate. We can start with using `table()`.
+
+```{r}
+#| label: tbl-treatment-counts
+#| tbl-cap: "Frequency of participants per Treatment group."
+# All three are at the same frequency
+table(infection$Treatment)
+```
+
+Using the `count()` function, we can perform essentially the same thing.
+
+```{r}
+#| label: tbl-infection-counts
+#| tbl-cap: "Total count of Infected vs. Non-Infected participants."
+# Showing there are more people that were not infected vs infected
+infection %>% count(Infection)
+```
+
+Now, we combine these two variables to see how infection status is distributed across the different treatments. While `table()` works, we will use `xtabs()` for a cleaner, formula-based approach.
+
+```{r}
+#| label: tbl-contingency-main
+#| tbl-cap: "Contingency Table: Infection Status by Treatment Group."
+# Create the table using the xtabs command
+contingency_table <- xtabs(~Treatment + Infection, data = infection)
+
+contingency_table
+```
+
+In R formulas, the variable before the + becomes the rows, and the variable after the + becomes the columns. If we reverse the formula, we transpose the table.
+
+```{r}
+#| label: tbl-contingency-reversed
+#| tbl-cap: "Reversed Contingency Table: Treatment Group by Infection Status."
+# Reversing the formula to see the change in orientation
+reverse_table <- xtabs(~Infection + Treatment, data = infection)
+
+reverse_table
+```
+
+Now through any of the ways (table or xtabs), we are able to see that *Cranberry* has the lowest number infected out of the three treatments. What if we want to understand this from a percentage standpoint?
+
+**Let's find out.**
+
+```{r}
+#| label: tbl-percentages-CA
+#| tbl-cap: "Contingency Table of Infection by Treatment Group: Combined Row Percentages and Sample Sizes (n)."
+#| message: false
+#| warning: false
+library(janitor)
+
+c_table <- infection %>%
+  tabyl(Treatment, Infection) %>%         # Makes a contingency table
+  adorn_totals("row") %>%                 # Adds totals for each treatment
+  adorn_percentages("row") %>%            # Adds row percentages
+  adorn_pct_formatting(digits = 1) %>%    # Makes it readable (adds % signs)
+  adorn_ns()                              # Combines counts + percentages
+
+c_table
+```
+
+From a percentage standpoint, we see that 84% of people who were given *cranberries* were not infected! That is much higher than either other treatment options, and the total percentage of people who were not infected as well.
+
+It seems that **cranberry** is taking an early lead in terms of which treatment is the most impactful. We have some preliminary numbers, so now we can visualize.
+
+## Visualizations {#sec-cat-analysis-viz}
+
+With purely categorical data, the visualization most commonly recommended would be a *bar chart.* With a bar chart, a viewer can interpret differences between the variables. There are two main options, a **stacked** or **grouped** bar chart. The main difference from a coding perspective is what we enter inside the `geom_bar` command.
+
+```{r}
+#| label: fig-ggplot-infection-treatment-stacked
+#| fig-cap: "Stacked bar chart showing the proportion of participants who were infected or not infected within each treatment group. Each bar represents a treatment, with segments indicating the relative frequency of infection outcomes. This visualization emphasizes differences in proportions across treatments and is useful for comparing categorical distributions prior to formal chi-square testing."
+#| message: false
+#| warning: false
+# We can use the library ggthemes to add some flavor to our plots
+library(ggthemes)
+
+# Creating a stacked bar chart
+stacked <- ggplot(infection, aes(x = Treatment, fill = Infection)) +
+  geom_bar(position = "fill") +   # "fill" stacks to 100% height
+  labs(
+    title = "Proportion of Infections by Treatment Type",
+    y = "Proportion of Participants",
+    x = "Treatment"
+  ) +
+  theme_solarized()
+```
+
+```{r}
+#| label: fig-ggplot-infection-treatment-grouped
+#| fig-cap: "Grouped bar chart displaying the raw counts of infected and not infected participants for each treatment type. Bars are shown side by side to facilitate direct comparison of observed frequencies across treatment groups, highlighting differences that are later evaluated using a chi-square test of independence."
+# Creating a grouped bar chart
+grouped <- ggplot(infection, aes(x = Treatment, fill = Infection)) +
+  geom_bar(position = "dodge") +
+  geom_text(
+    stat = "count",                          # use counts from geom_bar
+    aes(label = after_stat(count)),          # label each bar with its count
+    position = position_dodge(width = 0.9),  # place correctly over side-by-side bars
+    vjust = -0.3,                            # move labels slightly above bars
+    size = 4
+  ) +
+  labs(
+    title = "Number of Infections by Treatment Type",
+    x = "Treatment",
+    y = "Count of Participants",
+    fill = "Infection Outcome"
+  ) +
+  theme_classic()
+```
+
+```{r}
+#| label: fig-grouped-stacked-patchwork
+#| fig-cap: "Side-by-side comparison of stacked and grouped bar charts visualizing infection outcomes by treatment type. The stacked chart emphasizes proportional differences, while the grouped chart highlights raw counts. Together, these plots illustrate how different visual encodings can influence interpretation of categorical data."
+# We can put them side by side to compare what they look like
+library(patchwork)
+
+grouped + stacked + plot_annotation(title = "Visualizing Infection Outcomes by Treatment (Stacked Vs. Grouped")
+```
+
+To make our graphs more interactive with our users, we can utilize the `ggplotly()` function from the `plotly` package.
+```{r}
+#| include: false
+library(webshot2)
+```
+
+
+```{r}
+#| label: fig-plotly-graph
+#| fig-cap: "Interactive grouped bar chart displaying counts of infection outcomes by treatment type. Interactivity allows users to hover over bars to inspect values directly, supporting exploratory analysis while preserving the same information shown in the static grouped bar chart."
+#| message: false
+#| warning: false
+# We can also use the plotly package to make the visual more interactive
+library(plotly)
+
+ggplotly(grouped)
+```
+
+::: {.callout-note}
+## When using ggplotly:
+Move your cursor over the bars to gather more insights about your graph/data.
+:::
+
+## Chi-Square Test {#sec-chi-square}
+
+Now, we have done some investigation on our data through contingency tables and visualizations. It is time to run what is called a **chi-square** test. This allows us to see if two categorical variables are related to each other.
+
+```{r}
+#| label: tbl-chisq_test
+#| tbl-cap: "Chi-Square Test of Independence: Assessing the Relationship between Treatment Group and Infection Status."
+chisq.test(contingency_table)
+```
+
+Whether we performed it on our contingency table, we get:
+
+1.  X\^2- This is the test statistic. This is telling us how much different our observed is vs our expected.
+2.  df - Degrees of freedom = (rows - 1)*(columns - 1). For 3 treatments and 2 outcomes, df = (3-1)*(2-1) = 2.
+3.  p-value- This tells us if it is statistically significant or not.
+
+We see that our X\^2 value is 7.78, our df is 2, and our p-value is 0.0204871. Since our p-value is less than .05, we can rightly say that there is a significant relationship between treatment plans and outcomes.
+
+Now that we know it is significant, we need to dive a little deeper. We are understanding that **cranberry** is looking like the leader, but we can become more solidified on that stance.
+
+```{r}
+#| label: chi-square-breakdown
+chi_square_test <- chisq.test(contingency_table)
+
+# All the parts of the chi square can be called.
+chi_square_test$statistic
+
+chi_square_test$parameter
+
+chi_square_test$p.value
+
+chi_square_test$method
+
+chi_square_test$data.name
+
+# What our data already is
+chi_square_test$observed
+
+# What our data would look like if there was no relationship
+chi_square_test$expected
+
+# Difference between observed and expected
+# Positive is more than expected
+# Negative is less than expected
+# Bigger number = bigger difference
+# Represent how many standard deviations
+chi_square_test$residuals
+
+# Standard Residuals
+# More like an actual z-score
+chi_square_test$stdres
+```
+
+::: {.callout-tip}
+## Rule of Thumb:
+Think of standardized residuals like z-scores: values greater than +2 or less than -2 are the 'statistically interesting' parts of your table that are driving your p-value.
+:::
+
+We can also visualize our observed versus our expected counts, as visualizations are *key* to understanding our data.
+
+```{r}
+#| label: fig-observed-vs-expected
+#| fig-cap: "Comparison of Observed vs. Expected counts across treatment groups. The 'Expected' bars represent the distribution of infections if the null hypothesis were true (no relationship). The visible gap between the observed and expected bars in the Cranberry group illustrates the 'surprise' in the data that drives the significant Chi-Square result."
+
+# 1. Extract observed and expected counts from our test object
+obs_exp_data <- data.frame(
+  Treatment = rep(rownames(chi_square_test$observed), 2),
+  Infection = rep(colnames(chi_square_test$observed), each = 3),
+  Observed = as.vector(chi_square_test$observed),
+  Expected = as.vector(chi_square_test$expected)
+)
+
+# 2. Pivot the data to a 'long' format for ggplot
+plot_data <- obs_exp_data %>%
+  pivot_longer(cols = c(Observed, Expected), 
+               names_to = "Type", 
+               values_to = "Counts")
+
+# 3. Create the plot
+ggplot(plot_data, aes(x = Treatment, y = Counts, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.8) +
+  facet_wrap(~Infection) +
+  scale_fill_manual(values = c("Expected" = "grey70", "Observed" = "#CC0000")) +
+  labs(
+    title = "Observed vs. Expected Infection Counts",
+    subtitle = "The grey bars show what we would expect by random chance alone",
+    x = "Treatment Group",
+    y = "Number of Participants"
+  ) +
+  theme_minimal()
+```
+
+Our deep dive uncovered some very important things about our experiment:
+
+-   Expected: all of the values were different from what we the actual observations were. If there was no relationship between the two variables, it was expected that each treatment would have about 35 people not infected, and 15 people infected
+-   Residuals/stdres: this is where we really start to tie everything together. With the residuals, we are looking for if it is positive/negative, and then strength in relation to the other. **Cranberry** if the only one of the three where there are less people infected than anticipated, almost 2 standard deviations less than expected. Both other treatments have more people infected than expected.
+    -   Note: Standardized residuals behave like z-scores — values beyond ±2 suggest cells contributing most strongly to the overall χ² statistic.
+
+We tie this information together to get a very strong case for **cranberry.** There is just one piece of the puzzle left to bring this home.
+
+## Cross Tables {#sec-cross-tables}
+
+In the `gmodels` package we are able to utilize the `CrossTable` command. Beware, this can at first be overwhelming, as a lot of information is thrown at you.
+
+```{r}
+#| label: tbl-crosstables
+#| tbl-cap: "Comprehensive Cross-Tabulation: Observed and Expected Frequencies, Row/Column Proportions, and Chi-Square Contributions by Treatment and Infection Status."
+library(gmodels)
+
+# This allows us to see the contributions each category has on chi-square.
+# Note, you (infection$Treatment, infection$Infection) if you want to stick to defaults
+CrossTable(infection$Treatment, infection$Infection,
+           prop.chisq = TRUE,    # Shows the chi-square contribution
+           chisq = TRUE,         # shows chi-square test
+           expected = TRUE,      # shows expected counts
+           prop.r = TRUE,        # shows row proportions
+           prop.c = TRUE)        # shows column proportions
+```
+
+`CrossTable` gave us a lot of information (nothing we can not handle). Thankfully, there is an legend in the beginning of the results that identifies what each number is. Some of these we already discovered, such as expected values and the chi-square X\^2 value, but also some new information. Specifically, we are able to see the chi-square contribution. To break this down:
+
+-   When we run the chi-square test, we get the X\^2 value. Importantly, each combination of the variables contributes **individually** to this number. We are looking for the biggest contributors to not only understand the chi-square value better, but to also understand what is the most impactful.
+-   For this result, our third number's in each cell are the *chi-square contribution.* It is evident that **cranberry** has the highest contribution to the chi-square test statistic.
+
+## Contribution {#sec-cat-analysis-contribution}
+
+If we want to hone in on this more, we can take the contributions and turn them into percentages.
+
+::: {.callout-tip}
+## To find out more about the X\^2 value, it is important to answer the question:
+What percentage of the X\^2 value is each contribution responsible for?
+:::
+
+```{r}
+#| label: tbl-contributions
+#| tbl-cap: "Cell-wise Contributions to the Chi-Square Statistic: Identifying Discrepancies Between Observed and Expected Frequencies."
+# Calculate contribution to chi-square statistic
+contributions <- ((chi_square_test$observed-chi_square_test$expected)^2)/chi_square_test$expected
+
+contributions
+```
+
+::: {.callout-tip}
+## The formula for calculating the chi-square statistic is:
+$$X^2= ((observed-expected)^2)/expected$$
+:::
+
+```{r}
+#| label: tbl-percent-contributions
+#| tbl-cap: "Percentage of Total Chi-Square Variance by Cell: Quantifying the Relative Impact of Each Treatment on the Overall Significance."
+percent_contributions <- contributions / chi_square_test$statistic * 100
+
+percent_contributions
+```
+
+Through this, we discovered that about **65%** of the X\^2 value is due to the **cranberry** treatment.
+
+You already know that visualizations really help paint the picture, and *chi-square contributions* are not exempt. For this, the `pheatmap` package comes in handy.
+
+```{r}
+#| label: fig-pheatmap
+#| fig-cap: "Heatmap showing the percentage contribution of each cell to the overall chi-square statistic. Darker shading indicates cells that contribute more strongly to the chi-square value, highlighting which combinations of treatment type and infection outcome drive the observed association. This visualization helps identify where deviations from expected counts are largest following a significant chi-square test."
+library(pheatmap)
+
+# Create heatmap for percentage contributions
+pheatmap(percent_contributions,
+         display_numbers = TRUE,
+         cluster_rows = FALSE,
+         cluster_cols = FALSE,
+         main = "% Contribution to Chi-Square Statistic")
+```
+
+That glaring, deep red box? That is the **cranberry** yes cell!
+
+Tying all of this together, we have discovered:
+
+1.  **Cranberry** has the most people that were not infected (least amount infected).
+2.  The **chi-square** test shows a significant relationship between treatment and outcome.
+3.  When looking at residuals, **cranberry** was the only treatment with less people infected than expected.
+4.  When looking at *chi-square contributions,* **cranberry** had the largest contribution, with about **65%** of the test statistic being accounted for by **cranberry.**
+
+Now, how impactful is this overall? What is the **effect** of treatment overall on outcome?
+
+## CramerV {#sec-cramer-v}
+
+Cramer’s V tells you the strength of the relationship between two categorical variables, similar to correlation coefficient It is important to note that this measures effect size. This is **not** a statistic. We can utilize the `cramerV` command from the `rcompanion` package.
+
+```{r}
+#| label: cramerV
+#| message: false
+#| warning: false
+library(rcompanion)
+
+cramerV(contingency_table)
+```
+
+The value derived from this is **0.23**. Again, similar to the correlation coefficient, there are guidelines that can be utilized to understand the strength.
+
+```{r}
+#| label: tbl-cramerV-guidlines
+#| echo: false
+#| message: false
+#| warning: false
+library(kableExtra)
+
+cramerV_table <- data.frame(
+  "Cramer V Value" = c("0.00–0.10", "0.10–0.30", "0.30–0.50", ">0.50"),
+  "Strength of Relationship" = c("Very Weak", "Weak", "Moderate", "Strong"),
+  check.names = FALSE
+)
+
+kable(cramerV_table, 
+      booktabs = TRUE, 
+      caption = "Guidelines for interpreting the strength of association using Cramer’s *V*. These ranges provide general heuristics for describing effect size in categorical analyses and should be interpreted in context rather than as strict cutoffs.") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
+
+Treatment, overall, had a weak-moderate effect on outcome overall. This suggests that while treatment type and infection outcome are related, the relationship isn’t strong — meaning that other factors likely play a larger role.
+
+## Interpretation {#sec-cat-analysis-interpretation}
+
+-   The chi-square test shows X\^2 = 7.78, df = 2, p = 0.02
+-   This means there is a statistically significant relationship between Treatment and Infection.
+-   The Cranberry group had fewer infections than expected and contributes most to the chi-square statistic.
+-   Cramer’s V shows the relationship is weak-to-moderate in strength.
+-   **Drink your cranberry juice!**
+
+## Key Takeaways {#sec-cat-analysis-takeaways}
+
+-   The Chi-Square test helps us determine whether two categorical variables are related.
+-   It compares the **observed** frequencies (what we saw) to the **expected** frequencies (what we’d expect by chance).
+-   A large Chi-Square statistic and a p-value \< .05 suggest that the relationship is **statistically significant**.
+-   Degrees of freedom (df) are based on the number of categories: (rows - 1) \* (columns - 1).
+-   Cramer’s V measures the *strength* of the relationship, similar to a correlation coefficient:
+    -   0.00–0.10 = very weak \| 0.10–0.30 = weak \| 0.30–0.50 = moderate \| \>0.50 = strong
+-   Residuals show which specific groups contribute most to the Chi-Square result.
+-   Visualizations (like bar charts or heatmaps) make it easier to interpret where the differences lie.
+-   Statistical significance ≠ practical significance — even weak relationships can be significant with large samples.
+-   Example takeaway: Cranberry treatment showed fewer infections than expected — a weak but meaningful effect!
+
+## Checklist {#sec-cat-analysis-checklist}
+
+**When running a Chi-Square test, have you:**
+
+-   [ ] Identified both variables as **categorical** (not numeric)?
+-   [ ] Created a **contingency table** to summarize the counts?
+-   [ ] Calculated **expected counts** to compare against observed values?
+-   [ ] Verified that no expected counts are too small (all \> 5 is ideal)?
+-   [ ] Visualized your data (stacked/grouped bar charts)?
+-   [ ] Interpreted the Chi-Square statistic, df, and p-value?
+-   [ ] Calculated **Cramer’s V** to assess the strength of association?
+-   [ ] Checked which cells contribute most using **standardized residuals**?
+-   [ ] (Optional) Created a **heatmap** to visualize contributions or residuals?
+-   [ ] Written a clear interpretation that answers your research question?
+
+## Key Functions & Commands {#sec-cat-analysis-keyfunctions}
+
+The following functions and commands are introduced or reinforced in this chapter to support categorical data analysis, contingency tables, and Chi-Square testing.
+
+-   `table()` *(base R)*
+    -   Creates basic contingency (frequency) tables for categorical variables.
+-   `xtabs()` *(base R)*
+    -   Constructs contingency tables using a formula interface, useful for multi-way tables.
+-   `tabyl()` *(janitor)*
+    -   Generates clean contingency tables that integrate easily with percentage calculations.
+-   `adorn_percentages()` *(janitor)*
+    -   Converts contingency table counts into row- or column-based percentages.
+-   `adorn_ns()` *(janitor)*
+    -   Displays counts and percentages together for clearer interpretation.
+-   `chisq.test()` *(stats)*
+    -   Performs a Chi-Square test of independence to assess whether two categorical variables are related.
+-   `CrossTable()` *(gmodels)*
+    -   Produces detailed cross-tabulations including expected counts, proportions, and chi-square contributions.
+-   `pheatmap()` *(pheatmap)*
+    -   Visualizes Chi-Square contributions or residuals using a heatmap.
+-   `cramerV()` *(rcompanion)*
+    -   Computes Cramer’s V to measure the strength of association between categorical variables.
+
+## Example APA-style Write-up {#sec-cat-analysis-apa}
+
+The following example demonstrates one acceptable way to report the results of a chi-square test of independence in APA style.
+
+**Chi-Square Test of Independence**
+
+A chi-square test of independence indicated a significant association between treatment type and infection outcome, $\chi^2(2, N = 150) = 7.78, p = .02$. The strength of this association was weak-to-moderate, Cramer’s $V = .23$. As illustrated in @fig-pheatmap, the primary driver of this significance was the Cranberry group, which exhibited fewer infections than would be expected by chance.
+
+## 💡 *Reproducibility Tip:* {#sec-cat-tip}
+
+It is essential to both visually *and* structurally inspect your data, because data are not always what they seem.
+
+Consider Advanced Placement (AP) exam scores in U.S. high schools. Students receive scores from 1 to 5. While these values look numeric, they are actually **categorical**—there is no meaningful value like 2.5. Treating them as numeric can lead to incorrect analyses. The same issue commonly arises with variables like zip codes, which may be stored as numbers but represent categories, not quantities.
+
+Although functions like `View()` or `head()` are useful for visually checking your data, they do not reveal how R is interpreting each variable. Always use functions like `str()` to confirm that variables are stored with the correct data type before running an analysis.
+
+Analyses based on incorrectly typed variables are not reproducible—because they are not valid to begin with.

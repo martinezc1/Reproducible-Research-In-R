@@ -1,0 +1,40 @@
+project:
+  type: book
+
+number-sections: true
+
+book:
+  title: "Reproducible Research Using R"
+  author: "Christian Martinez"
+  date: "1/19/2026"
+  chapters:
+    - index.qmd
+    - 01-Introduction-To-R.qmd
+    - 02-Introduction-To-tidyverse.qmd
+    - 03-Visualizations.qmd
+    - 04-Comparing-Two-Groups.qmd
+    - 05-Comparing-Multiple-Groups.qmd
+    - 06-Analyzing-Categorical-Data.qmd
+    - 07-Correlation.qmd
+    - 08-Linear-Regression.qmd
+    - 09-Logistic-Regression.qmd
+    - 10-Reproducible-Reporting.qmd
+  appendices:
+    - 11-Appendix.qmd
+    - 12-Package-References.qmd
+    - 13-Reproducible-Reporting-R-Markdown.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    code-copy: true
+  epub:
+    toc: true
+    number-sections: true
+
+editor: visual
+
