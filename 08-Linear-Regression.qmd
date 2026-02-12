@@ -128,7 +128,7 @@ Our data is already telling us a lot. From both of our graphics, we can see that
 
 ## Understanding Correlation {#sec-cor-linear-reg}
 
-Before we get to a linear regression, it is best to first understand how (if at all) our variables are correlated with each other. For a review on correlation, go back to chapter @sec-cor.
+Before we get to a linear regression, it is best to first understand how (if at all) our variables are correlated with each other. For a review on correlation, go back to @sec-intro-cor of the textbook.
 
 We are first trying to figure out what variables, if any, should be included in our linear regression model, and this is exactly where correlation comes into play.
 
