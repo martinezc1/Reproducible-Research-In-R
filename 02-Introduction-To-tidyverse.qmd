@@ -2,6 +2,7 @@
 title: "Introduction To tidyverse"
 ---
 
+## Introduction {#sec-intro-tidyverse}
 Just like Spider-Man, we are going to enter a new universe in R: the `tidyverse`!
 
 This chapter introduces the `tidyverse`, a collection of R packages designed to make data analysis more readable, consistent, and reproducible. The tools introduced here will be used repeatedly throughout the remainder of this textbook, forming the backbone of nearly every analysis we perform.
