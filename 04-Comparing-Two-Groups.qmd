@@ -50,13 +50,16 @@ In this scenario, we can imagine that for whatever reason, we are unable or do n
 To summarize, we will be taking the scores from the first 10 Yankees games and the first 10 Mets games and creating a data frame with our data, and utilizing similar techniques introduced in @sec-intro-dataframes-creating.
 
 ```{r}
-#| label: Creating the data
+#| label: tbl-creating-mets-data
 mets <- data.frame(
   Game = c(1,2,3,4,5,6,7,8,9,10),
   Mets_Score = c(4,20,12,5,3,9,9,10,4,2)) # This is where we manually put our numbers in
 
 head(mets) # This calls the first 6 rows of the data
+```
 
+```{r}
+#| label: tbl-creating-yankees-data
 yankees <- data.frame(
   Game = c(1:10), # The colon tells R "any number between 1 and 10."
   Yankees_Score = c(3,8,2,3,2,6,5,3,2,7))
@@ -154,7 +157,7 @@ We previously used the `merge` command, however, R also allows for SQL code! Her
 In this case, we are going to use `inner_join`, since we know that both of our datasets have the same 20 games.
 
 ```{r}
-#| label: baseball-sql
+#| label: tbl-baseball-sql
 #| warning: false
 #| error: false
 library(tidyverse)
@@ -177,7 +180,7 @@ Right now, our data is considered **wide** format, that is, there are 20 rows, a
 Using the `pivot_longer` function from the `tidyverse` package, we can turn our data from wide to long.
 
 ```{r}
-#| label: baseball-pivot-longer
+#| label: tbl-baseball-pivot-longer
 # Lets say we want to turn out data from wide format into long format, so we can run 
 baseball_data_long <- baseball_data %>% pivot_longer(cols = c(Yankees_Score, Mets_Score),
                                                     names_to = "Team",
@@ -193,7 +196,7 @@ baseball_data_long
 Our original baseball_data (and baseball_data_sql) are in wide format already so we don't have to do this, but just in case you ever start with long data and want to convert it to wide, here is some code to help. Below, we are turning our baseball_data_long into a wide format.
 
 ```{r}
-#| label: baseball-pivot-wide
+#| label: tbl-baseball-pivot-wide
 # Lets say we want to turn out data from wide format into long format, so we can run 
 baseball_data_wide <- baseball_data_long %>% pivot_wider(names_from = "Team",
                                                     values_from = "Score")

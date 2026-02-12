@@ -85,7 +85,7 @@ install.packages("nycOpenData")
 Now we load it and call the function.
 
 ```{r}
-#| label: nycOpenData
+#| label: tbl-nycOpenData
 library(nycOpenData)
 head(nyc_311())
 ```
@@ -185,14 +185,14 @@ Keep only distinct rows from a data frame.
 :::
 
 ```{r}
-#| label: distinct-one
+#| label: tbl-distinct-one
 penguins %>% distinct(species)
 ```
 
 That one line of code filtered through all 344 rows and figured out that there are only three different species of penguins in the `penguins` dataset. But it doesn't stop there - you can also use the `distinct()` command to see distinct combinations of data too. For example:
 
 ```{r}
-#| label: distinct-two
+#| label: tbl-distinct-two
 penguins %>% distinct(species, island)
 ```
 
@@ -211,14 +211,14 @@ Changes which columns exist.
 :::
 
 ```{r}
-#| label: select-names
+#| label: tbl-select-names
 penguins %>% select(species, island, bill_length_mm, body_mass_g)
 ```
 
 Instead of using the actual column names, we can use the column indices - which number (in order). Below is an example using the column indexes (hint: it uses a comma and a colon.)
 
 ```{r}
-#| label: select-index
+#| label: tbl-select-index
 # This is saying let's take the first column, and then every column from 3 to 5
 penguins %>% select(1,3:5) 
 ```
@@ -254,7 +254,7 @@ Let's say that we want to filter for only the penguin species Adelie. If you do 
 We will filter for only rows that have the word Adelie inside the species column.
 
 ```{r}
-#| label: filter
+#| label: tbl-filter
 penguins %>%
   filter(species == "Adelie")
 ```
@@ -272,7 +272,7 @@ In the case we only want to return rows where species is "Adelie" **and** the is
 Important: rows that return have to meet **both** criteria. If in that row either none, or even one, of the criteria are met, then that row will not return.
 
 ```{r}
-#| label: filter-and
+#| label: tbl-filter-and
 penguins %>%
   filter(species == "Adelie" & island == "Torgersen")
 ```
@@ -280,7 +280,7 @@ penguins %>%
 That returned exactly what we wanted. But, what if we changed our mind. We want to return rows that **either** have "Adelie" as their species **or** the island is "Torgersen". Instead of using the `&` symbol, we need to use the `|` symbol.
 
 ```{r}
-#| label: filter-or
+#| label: tbl-filter-or
 penguins %>%
   filter(species == "Adelie" | island == "Torgersen")
 ```
@@ -292,20 +292,27 @@ Now, instead of returning rows that have both "Adelie" and "Torgersen", the code
 We do not have to just use `==`, as we have other options. Below are two options: the first filters for any body mass over 4,000 grams, and the second filters for species that are either `Adelie` or `Gentoo`.
 
 ```{r}
-#| label: filter-logical
+#| label: tbl-filter-logical-bodymass
 penguins %>% filter(body_mass_g >= 4000)
+```
 
+```{r}
+#| label: tbl-filter-logical-name
 penguins %>% filter(species %in% c("Adelie", "Gentoo"))
 ```
+
 
 #### Filtering NA values {#sec-tidyverse-filter-na}
 
 In any dataset, NA values can be a pain. Depending what to do with them is always situational, but it is important to learn **how** to work with them. We can utilize `is.na()` to filter for which are NA and the `drop_na()` to remove all rows that have **at least** one NA value.
 
 ```{r}
-#| label: filter-na
+#| label: tbl-filter-na
 penguins %>% filter(is.na(body_mass_g))    # Filter for rows that have missing data
+```
 
+```{r}
+#| label: tbl-filter-drop-na
 penguins %>% drop_na(body_mass_g)          # Filters for rows that don't have missing data
 ```
 
@@ -324,9 +331,11 @@ orders the rows of a data frame.
 :::
 
 ```{r}
-#| label: arrange
+#| label: tbl-arrange
 penguins %>% arrange(body_mass_g)          # ascending order
-
+```
+```{r}
+#| label: tbl-arrange-desc
 penguins %>% arrange(desc(body_mass_g))    # descending order
 ```
 
@@ -341,7 +350,7 @@ Changes or creates columns.
 :::
 
 ```{r}
-#| label: mutate
+#| label: tbl-mutate
 # Base R
 penguins$bill_ratio <- penguins$bill_length_mm / penguins$bill_depth_mm
 
@@ -358,7 +367,7 @@ If we want to get a little more complicated and add some criteria, we can use ei
 In the scenario where we wanted to create a new column called size_category. If the body mass of the penguin is greater than 3,500 grams, then we want it to be considered ‘Big’; otherwise, it should be considered ‘Small’. To do this, we can use the `if_else()` where we first add the criteria we want to build a column using, the value if it fits the criteria, and the value if it does not fit the criteria.
 
 ```{r}
-#| label: if-else
+#| label: tbl-if-else
 penguins %>%
   mutate(size_category = if_else(body_mass_g >= 3500, "Big","Small"))
 ```
@@ -375,7 +384,7 @@ But what if there are multiple criteria we want and not binary like big and smal
 When there are only two different criteria, then we can use `if_else()`. But, when there are three or more criteria, we can use the `case_when()` command. Instead of having just "Big" and "Small", let's add the category "Gigantic".
 
 ```{r}
-#| label: case-when
+#| label: tbl-case-when
 penguins %>%
   mutate(size_category = case_when(
     body_mass_g <= 3500 ~ "Small",
@@ -400,7 +409,7 @@ $New Name = OldName$
 As an example, let's change the name of the species column to penguin_types.
 
 ```{r}
-#| label: rename
+#| label: tbl-rename
 penguins %>% rename(penguin_types = species) 
 ```
 
@@ -453,9 +462,11 @@ We have done a fantastic job of manipulating our data. But, what if we want a di
 Before, we utilized the `nrow()` function to find out how many rows there are overall in the `penguins` dataset. We also utilized the `distinct()` command to find out how many different species there are in the `penguins` dataset. But, as of right now, we currently do not know **how** many rows **each** species has. Using base R, we can use the `table()` command, and in the `tidyverse`, we can use the `count()` command.
 
 ```{r}
-#| label: tables
+#| label: tbl-tables
 table(penguins$species)
-
+```
+```{r}
+#| label: tbl-tables-count
 penguins %>% count(species, sort = TRUE)
 ```
 
@@ -468,7 +479,7 @@ In cases like this (similar to a pivot table in Excel), we can utilize both the 
 Below, we will be finding out the total number of rows in the dataset per species and the mean body mass of each species.
 
 ```{r}
-#| label: summarize
+#| label: tbl-summarize
 penguins %>%
   group_by(species) %>%
   summarize(

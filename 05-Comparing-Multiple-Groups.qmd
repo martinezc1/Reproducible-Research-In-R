@@ -48,7 +48,7 @@ As long as we put the same number in `set.seed()` then the same data will be cre
 Next, we can use the `rnorm()` command to dictate quantity, mean, and standard deviation of each.
 
 ```{r}
-#| label: creating_our_data
+#| label: tblcreating_our_data
 #| message: false
 #| warning: false
 library(tidyverse)
